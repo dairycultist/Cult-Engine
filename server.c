@@ -14,6 +14,7 @@
 #define MAX_PLAYER_COUNT 10
 #define CONN_BACKLOG 4
 
+// TODO make these cli parameters
 #define IP "127.0.0.1"
 #define PORT 25565
 
@@ -67,18 +68,28 @@ static void *handle_clients(void *server_fd) {
 					// packet received
 					static uint32_t packet_type;
 					static uint32_t big_body_size;
-					static float small_body[SMALL_BODY_LEN];
+					static uint32_t small_body[SMALL_BODY_LEN];
 					static char *big_body;
 
 					read_packet(client_fds[i].fd, &packet_type, &big_body_size, small_body, &big_body);
 
-					printf("%d said: %s\n", client_fds[i].fd, big_body);
+					switch (packet_type) {
+
+						case P_PING:
+							printf("%d pinged: %s\n", client_fds[i].fd, big_body);
+							write_packet(client_fds[i].fd, P_PONG, big_body_size, NULL, big_body);
+							break;
+
+						case P_PONG:
+							printf("%d ponged: %s\n", client_fds[i].fd, big_body);
+							break;
+					}
 				}
 
 				if (client_fds[i].revents & (POLLERR | POLLHUP)) {
 
 					// client socket was suddenly closed (no disconnect packet)
-					printf("\n");
+					printf("%d disconnected\n", client_fds[i].fd);
 
 					close(client_fds[i].fd);
 					client_fds[i].fd = -1;
@@ -104,15 +115,15 @@ int main() {
 
 		server_addr.sin_family = AF_INET;
 		server_addr.sin_port = htons(PORT);
-		server_addr.sin_addr.s_addr = inet_addr(IP);
+		server_addr.sin_addr.s_addr = inet_addr(IP); // TODO switch out for the more modern inet_pton
 
 		if (bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr))) {
-			printf("Failed to bind.\n");
+			perror("Failed to bind.\n");
 			return errno;
 		}
 
 		if (listen(server_fd, CONN_BACKLOG)) {
-			printf("Failed to listen.\n");
+			perror("Failed to listen.\n");
 			return errno;
 		}
 	}
@@ -124,7 +135,7 @@ int main() {
 
 	if (pthread_create(&client_handler, NULL, handle_clients, &server_fd)) {
 
-		printf("Failed to create client handling thread.\n");
+		perror("Failed to create client handling thread.\n");
 		return 1;
 	}
 

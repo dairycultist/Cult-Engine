@@ -6,25 +6,34 @@
 // an arbitrary amount of bytes for the body, whose structure depends on the packet type
 
 // the small body exists for very common, small communications (like sending a player's position)
-// that would needlessly consume resources were they to be constantly mallocing and freeing the big_body
+// that would needlessly consume resources were they to be constantly mallocing and freeing the big_body.
+// (position will have to be quantized, whatever; entity and obj IDs will also be sent in the small body)
 #define SMALL_BODY_LEN 8
 
 // StoC or CtoS: When recieved, the reciever should send the big body verbatim back to the sender without modification with the P_PONG packet type.
 #define P_PING 0
 #define P_PONG 1
+// // StoC: Sends an object file's contents verbatim to the client.
+// #define P_OBJ 2
+// // CtoS
+// #define P_CLIENT_POS_ROT 3
+// // StoC: Updates the position and rotation of an entity (including other players) on the client-side. Format: id, x, y, z, pitch, yaw
+// #define P_ENTITY_POS_ROT 4
 
-void read_packet(int fd, uint32_t *packet_type, uint32_t *big_body_size, float small_body[SMALL_BODY_LEN], char **big_body) {
+// probably also something to send colliders; player input, movement, and collision is performed on the client-side since idc about hacking
+
+void read_packet(int fd, uint32_t *packet_type, uint32_t *big_body_size, uint32_t small_body[SMALL_BODY_LEN], char **big_body) {
 
 	// read metadata
-	read(fd, packet_type, 4);
-	read(fd, big_body_size, 4);
+	read(fd, packet_type, sizeof(uint32_t));
+	read(fd, big_body_size, sizeof(uint32_t));
 
 	// read body (we know the size of the small body from the packet type)
 	*big_body = malloc(*big_body_size);
 	read(fd, *big_body, *big_body_size);
 }
 
-void write_packet(int fd, uint32_t packet_type, uint32_t big_body_size, const float small_body[SMALL_BODY_LEN], const char *big_body) {
+void write_packet(int fd, uint32_t packet_type, uint32_t big_body_size, const uint32_t small_body[SMALL_BODY_LEN], const char *big_body) {
 	
 	// write metadata
 	write(fd, &packet_type, sizeof(uint32_t));
