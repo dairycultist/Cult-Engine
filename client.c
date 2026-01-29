@@ -9,10 +9,12 @@
 
 #include "packet.c"
 
-#define IP "127.0.0.1"
-#define PORT 25565
+int main(int argc, char **argv) {
 
-int main() {
+	if (argc != 3) {
+		printf("Format: %s <IP> <PORT>\n", argv[0]);
+		return 0;
+	}
 	
     int fd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -25,9 +27,9 @@ int main() {
 		struct sockaddr_in serv_addr;
 
 		serv_addr.sin_family = AF_INET;
-		serv_addr.sin_port = htons(PORT);
+		serv_addr.sin_port = htons(atoi(argv[2]));
 
-		if (inet_pton(AF_INET, IP, &serv_addr.sin_addr) <= 0) {
+		if (inet_pton(AF_INET, argv[1], &serv_addr.sin_addr) <= 0) {
 			perror("Invalid address.");
 			return errno;
 		}

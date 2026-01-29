@@ -14,10 +14,6 @@
 #define MAX_PLAYER_COUNT 10
 #define CONN_BACKLOG 4
 
-// TODO make these cli parameters
-#define IP "127.0.0.1"
-#define PORT 25565
-
 static void *handle_clients(void *server_fd) {
 
 	// mutexes are a thing
@@ -47,12 +43,14 @@ static void *handle_clients(void *server_fd) {
 
 				if (client_fds[i].fd == -1) {
 
+					printf("%d connected.", client_fd);
 					client_fds[i].fd = client_fd;
 					goto login_success;
 				}
 			}
 
 			// if there was no space, disconnect the client
+			printf("%d tried to connect, but exceeded the player cap.", client_fd);
 			close(client_fd);
 		}
 
@@ -101,7 +99,12 @@ static void *handle_clients(void *server_fd) {
 	return NULL;
 }
 
-int main() {
+int main(int argc, char **argv) {
+
+	if (argc != 3) {
+		printf("Format: %s <IP> <PORT>\n", argv[0]);
+		return 0;
+	}
 
 	// create server socket
 	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -114,8 +117,12 @@ int main() {
 		struct sockaddr_in server_addr;
 
 		server_addr.sin_family = AF_INET;
-		server_addr.sin_port = htons(PORT);
-		server_addr.sin_addr.s_addr = inet_addr(IP); // TODO switch out for the more modern inet_pton
+		server_addr.sin_port = htons(atoi(argv[2]));
+
+		if (inet_pton(AF_INET, argv[1], &server_addr.sin_addr) <= 0) {
+			perror("Invalid address.");
+			return errno;
+		}
 
 		if (bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr))) {
 			perror("Failed to bind.\n");
