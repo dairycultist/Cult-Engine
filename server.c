@@ -67,7 +67,7 @@ static void *handle_clients(void *server_fd) {
 					// packet received
 					static uint32_t packet_type;
 					static uint32_t big_body_size;
-					static float small_body[8];
+					static float small_body[SMALL_BODY_LEN];
 					static char *big_body;
 
 					read_packet(client_fds[i].fd, &packet_type, &big_body_size, small_body, &big_body);
