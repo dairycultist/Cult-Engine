@@ -15,7 +15,14 @@
 #define MAX_PLAYER_COUNT 10
 #define CONN_BACKLOG 4
 
-static void on_client_packet(int client_fd, struct pollfd client_fds[MAX_PLAYER_COUNT], Packet *packet) {
+typedef struct {
+
+	int server_fd;
+	struct pollfd client_fds[MAX_PLAYER_COUNT];
+
+} NetworkInfo;
+
+static void on_client_packet(Packet *packet, int client_fd, NetworkInfo *network_info) {
 
 	switch (packet->packet_type) {
 
@@ -31,28 +38,21 @@ static void on_client_packet(int client_fd, struct pollfd client_fds[MAX_PLAYER_
 	}
 }
 
-static void on_tick() {
+static void on_tick(NetworkInfo *network_info) {
 	// TODO client_fds should be accessible here
 }
 
-static void *handle_clients(void *server_fd) {
+static void *handle_clients(void *network_info_void) {
 
 	// mutexes are a thing
 	// pthread_mutex_t, pthread_mutex_lock(), pthread_mutex_unlock()
 
-	struct pollfd client_fds[MAX_PLAYER_COUNT];
-
-	// initialize file descriptor list
-	for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
-
-		client_fds[i].fd     = -1;
-		client_fds[i].events = POLLIN;
-	}
+	NetworkInfo *network_info = (NetworkInfo *) network_info_void;
 
 	while (1) {
 
 		// accept any new clients
-		int client_fd = accept(*(int *) server_fd, NULL, NULL);
+		int client_fd = accept(network_info->server_fd, NULL, NULL);
 
 		if (client_fd != -1) {
 			
@@ -62,10 +62,10 @@ static void *handle_clients(void *server_fd) {
 			// find a space to insert the client
 			for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
 
-				if (client_fds[i].fd == -1) {
+				if (network_info->client_fds[i].fd == -1) {
 
 					printf("%d connected.", client_fd);
-					client_fds[i].fd = client_fd;
+					network_info->client_fds[i].fd = client_fd;
 					goto login_success;
 				}
 			}
@@ -78,27 +78,27 @@ static void *handle_clients(void *server_fd) {
 		login_success:
 
 		// handle incoming packets
-		if (poll(client_fds, MAX_PLAYER_COUNT, 0) != 0) {
+		if (poll(network_info->client_fds, MAX_PLAYER_COUNT, 0) != 0) {
 
 			for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
 
-				if (client_fds[i].revents & POLLIN) {
+				if (network_info->client_fds[i].revents & POLLIN) {
 
 					// packet received
 					static Packet packet;
 
-					read_packet(client_fds[i].fd, &packet);
+					read_packet(network_info->client_fds[i].fd, &packet);
 
-					on_client_packet(client_fds[i].fd, client_fds, &packet);
+					on_client_packet(&packet, network_info->client_fds[i].fd, network_info);
 				}
 
-				if (client_fds[i].revents & (POLLERR | POLLHUP)) {
+				if (network_info->client_fds[i].revents & (POLLERR | POLLHUP)) {
 
 					// client socket was suddenly closed (no disconnect packet)
-					printf("%d disconnected\n", client_fds[i].fd);
+					printf("%d disconnected\n", network_info->client_fds[i].fd);
 
-					close(client_fds[i].fd);
-					client_fds[i].fd = -1;
+					close(network_info->client_fds[i].fd);
+					network_info->client_fds[i].fd = -1;
 				}
 			}
 		}
@@ -115,10 +115,11 @@ int main(int argc, char **argv) {
 	}
 
 	// create server socket
-	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	static NetworkInfo network_info;
+	network_info.server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	// make socket non-blocking
-	fcntl(server_fd, F_SETFL, fcntl(server_fd, F_GETFL, 0) | O_NONBLOCK);
+	fcntl(network_info.server_fd, F_SETFL, fcntl(network_info.server_fd, F_GETFL, 0) | O_NONBLOCK);
 
 	// initialize server information
 	{
@@ -132,12 +133,12 @@ int main(int argc, char **argv) {
 			return errno;
 		}
 
-		if (bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr))) {
+		if (bind(network_info.server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr))) {
 			perror("Failed to bind.\n");
 			return errno;
 		}
 
-		if (listen(server_fd, CONN_BACKLOG)) {
+		if (listen(network_info.server_fd, CONN_BACKLOG)) {
 			perror("Failed to listen.\n");
 			return errno;
 		}
@@ -145,10 +146,17 @@ int main(int argc, char **argv) {
 
 	printf("Server initialized.\n");
 
+	// initialize client file descriptor list
+	for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
+
+		network_info.client_fds[i].fd     = -1;
+		network_info.client_fds[i].events = POLLIN;
+	}
+
 	// create the client handling thread
 	pthread_t client_handler;
 
-	if (pthread_create(&client_handler, NULL, handle_clients, &server_fd)) {
+	if (pthread_create(&client_handler, NULL, handle_clients, &network_info)) {
 
 		perror("Failed to create client handling thread.\n");
 		return 1;
@@ -157,7 +165,7 @@ int main(int argc, char **argv) {
 	// main loop (performs client-independent logic)
 	while (1) {
 
-		on_tick();
+		on_tick(&network_info);
 		usleep(LOGIC_INTERVAL_US);
 	}
 
