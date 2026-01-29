@@ -5,8 +5,11 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #include <arpa/inet.h>
+
+#include "packet.c"
 
 #define MAX_PLAYER_COUNT 10
 #define CONN_BACKLOG 4
@@ -62,9 +65,14 @@ static void *handle_clients(void *server_fd) {
 				if (client_fds[i].revents & POLLIN) {
 
 					// packet received
-					char in;
-					read(client_fds[i].fd, &in, 1);
-					printf("%c", in);
+					static uint32_t packet_type;
+					static uint32_t big_body_size;
+					static float small_body[8];
+					static char *big_body;
+
+					read_packet(client_fds[i].fd, &packet_type, &big_body_size, small_body, &big_body);
+
+					printf("%d said: %s\n", client_fds[i].fd, big_body);
 				}
 
 				if (client_fds[i].revents & (POLLERR | POLLHUP)) {
