@@ -2,11 +2,11 @@
 A work-in-progress multiplayer sandbox game with server-side modding support.
 
 ## Goals
-- Multiplayer (server-client, packets)
-- 3D rendering from assets sent by the server
-- Player control which is mirrored to all other clients via the server
-- Publish a playtest on itch.io to get feedback and motivation to continue working on it
-- Custom maps, entities, items, all of which are scriptable
+- [x] Multiplayer (server-client sockets, packets)
+- [ ] 3D rendering from assets sent by the server
+- [ ] Player control which is mirrored to all other clients via the server
+- [ ] Publish a playtest on itch.io to get feedback and motivation to continue working on it
+- [ ] Custom maps, entities, items, all of which are scriptable
 
 ## Notes
 fat wife and booby wife mod

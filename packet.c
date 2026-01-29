@@ -1,15 +1,14 @@
 // shared by both server.c and client.c for abstracting packet structure
 
-// a packet is structured as such:
-// 32 bits for the packet type
-// 32 bits for the body size (can indicate up to over 4GB; is the size of the packet excluding the packet type and body size)
-// an arbitrary amount of bytes for the body, whose structure depends on the packet type
-
 // the small body exists for very common, small communications (like sending a player's position)
 // that would needlessly consume resources were they to be constantly mallocing and freeing the big_body.
 // (position will have to be quantized, whatever; entity and obj IDs will also be sent in the small body)
 #define SMALL_BODY_LEN 8
 
+// a packet is structured as such:
+// 32 bits for the packet type
+// 32 bits for the body size (can indicate up to over 4GB; represents the size of the packet excluding the packet type and body size)
+// an arbitrary amount of bytes for the body, whose structure depends on the packet type
 typedef struct {
 
 	uint32_t packet_type;
@@ -19,15 +18,15 @@ typedef struct {
 
 } Packet;
 
-// StoC or CtoS: When recieved, the reciever should send the big body verbatim back to the sender without modification with the P_PONG packet type.
+// StoC or CtoS: When recieved, the reciever should send the packet back to the sender unmodified, except to switch the packet type to P_PONG.
 #define P_PING 0
 #define P_PONG 1
-// // StoC: Sends an object file's contents verbatim to the client.
-// #define P_OBJ 2
-// // CtoS
-// #define P_CLIENT_POS_ROT 3
-// // StoC: Updates the position and rotation of an entity (including other players) on the client-side. Format: id, x, y, z, pitch, yaw
-// #define P_ENTITY_POS_ROT 4
+// StoC: Tells the client to create a mesh from an object file (whose contents are sent verbatim) with the given object id. [obj_id]
+#define P_OBJ 2
+// CtoS: Tells the server to update the client entity's position and rotation on the server. [x, y, z, pitch, yaw]
+#define P_CLIENT_POS_ROT 3
+// StoC: Updates the position and rotation of an entity (including player entities) on the client-side. [entity_id, x, y, z, pitch, yaw]
+#define P_ENTITY_POS_ROT 4
 
 // probably also something to send colliders; player input, movement, and collision is performed on the client-side since idc about hacking
 

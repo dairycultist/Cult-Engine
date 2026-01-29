@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 			return errno;
 		}
 
-		if (connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+		if (connect(fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
 			perror("Connection failed.");
 			return errno;
 		}
