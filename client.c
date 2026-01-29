@@ -41,16 +41,17 @@ int main(int argc, char **argv) {
 	}
 
 	// test transmission
-	static uint32_t packet_type;
-	static uint32_t big_body_size;
-	static uint32_t small_body[SMALL_BODY_LEN];
-	static char *big_body;
+	static Packet packet;
 
-	write_packet(fd, P_PING, strlen("Hello there, server!") + 1, NULL, "Hello there, server!");
+	packet.packet_type = P_PING;
+	packet.big_body_size = strlen("Hello there, server!") + 1;
+	packet.big_body = "Hello there, server!";
 
-	read_packet(fd, &packet_type, &big_body_size, small_body, &big_body);
+	write_packet(fd, &packet);
 
-	printf("Heard pong: %s\n", big_body);
+	read_packet(fd, &packet);
+
+	printf("Heard pong: %s\n", packet.big_body);
 
     // close the socket
     close(fd);

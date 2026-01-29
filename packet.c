@@ -10,6 +10,15 @@
 // (position will have to be quantized, whatever; entity and obj IDs will also be sent in the small body)
 #define SMALL_BODY_LEN 8
 
+typedef struct {
+
+	uint32_t packet_type;
+	uint32_t big_body_size;
+	uint32_t small_body[SMALL_BODY_LEN];
+	char *big_body;
+
+} Packet;
+
 // StoC or CtoS: When recieved, the reciever should send the big body verbatim back to the sender without modification with the P_PONG packet type.
 #define P_PING 0
 #define P_PONG 1
@@ -22,23 +31,23 @@
 
 // probably also something to send colliders; player input, movement, and collision is performed on the client-side since idc about hacking
 
-void read_packet(int fd, uint32_t *packet_type, uint32_t *big_body_size, uint32_t small_body[SMALL_BODY_LEN], char **big_body) {
+void read_packet(int fd, Packet *packet) {
 
 	// read metadata
-	read(fd, packet_type, sizeof(uint32_t));
-	read(fd, big_body_size, sizeof(uint32_t));
+	read(fd, &packet->packet_type, sizeof(uint32_t));
+	read(fd, &packet->big_body_size, sizeof(uint32_t));
 
 	// read body (we know the size of the small body from the packet type)
-	*big_body = malloc(*big_body_size);
-	read(fd, *big_body, *big_body_size);
+	packet->big_body = malloc(packet->big_body_size);
+	read(fd, packet->big_body, packet->big_body_size);
 }
 
-void write_packet(int fd, uint32_t packet_type, uint32_t big_body_size, const uint32_t small_body[SMALL_BODY_LEN], const char *big_body) {
+void write_packet(int fd, const Packet *packet) {
 	
 	// write metadata
-	write(fd, &packet_type, sizeof(uint32_t));
-	write(fd, &big_body_size, sizeof(uint32_t));
+	write(fd, &packet->packet_type, sizeof(uint32_t));
+	write(fd, &packet->big_body_size, sizeof(uint32_t));
 
 	// write body
-	write(fd, big_body, big_body_size);
+	write(fd, packet->big_body, packet->big_body_size);
 }

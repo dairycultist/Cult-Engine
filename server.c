@@ -11,8 +11,29 @@
 
 #include "packet.c"
 
+#define LOGIC_INTERVAL_US (1000000 / 60)
 #define MAX_PLAYER_COUNT 10
 #define CONN_BACKLOG 4
+
+static void on_client_packet(int client_fd, struct pollfd client_fds[MAX_PLAYER_COUNT], Packet *packet) {
+
+	switch (packet->packet_type) {
+
+		case P_PING:
+			printf("%d pinged: %s\n", client_fd, packet->big_body);
+			packet->packet_type = P_PONG;
+			write_packet(client_fd, packet);
+			break;
+
+		case P_PONG:
+			printf("%d ponged: %s\n", client_fd, packet->big_body);
+			break;
+	}
+}
+
+static void on_tick() {
+	// TODO client_fds should be accessible here
+}
 
 static void *handle_clients(void *server_fd) {
 
@@ -64,24 +85,11 @@ static void *handle_clients(void *server_fd) {
 				if (client_fds[i].revents & POLLIN) {
 
 					// packet received
-					static uint32_t packet_type;
-					static uint32_t big_body_size;
-					static uint32_t small_body[SMALL_BODY_LEN];
-					static char *big_body;
+					static Packet packet;
 
-					read_packet(client_fds[i].fd, &packet_type, &big_body_size, small_body, &big_body);
+					read_packet(client_fds[i].fd, &packet);
 
-					switch (packet_type) {
-
-						case P_PING:
-							printf("%d pinged: %s\n", client_fds[i].fd, big_body);
-							write_packet(client_fds[i].fd, P_PONG, big_body_size, NULL, big_body);
-							break;
-
-						case P_PONG:
-							printf("%d ponged: %s\n", client_fds[i].fd, big_body);
-							break;
-					}
+					on_client_packet(client_fds[i].fd, client_fds, &packet);
 				}
 
 				if (client_fds[i].revents & (POLLERR | POLLHUP)) {
@@ -146,10 +154,11 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	// main loop
+	// main loop (performs client-independent logic)
 	while (1) {
 
-		// process non-client stuff
+		on_tick();
+		usleep(LOGIC_INTERVAL_US);
 	}
 
 	// pthread_join(client_handler, NULL);
