@@ -22,7 +22,7 @@ typedef struct {
 
 } NetworkInfo;
 
-static void on_client_packet(Packet *packet, int client_fd, NetworkInfo *network_info) {
+static void on_client_packet(NetworkInfo *network_info, Packet *packet, int client_fd) {
 
 	switch (packet->packet_type) {
 
@@ -82,22 +82,24 @@ static void *handle_clients(void *network_info_void) {
 
 			for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
 
+				int client_fd = network_info->client_fds[i].fd;
+
+				// packet received
 				if (network_info->client_fds[i].revents & POLLIN) {
 
-					// packet received
 					static Packet packet;
 
-					read_packet(network_info->client_fds[i].fd, &packet);
+					read_packet(client_fd, &packet);
 
-					on_client_packet(&packet, network_info->client_fds[i].fd, network_info);
+					on_client_packet(network_info, &packet, client_fd);
 				}
 
+				// client socket was closed unexpectedly (i.e. no disconnect packet)
 				if (network_info->client_fds[i].revents & (POLLERR | POLLHUP)) {
 
-					// client socket was suddenly closed (no disconnect packet)
-					printf("%d disconnected\n", network_info->client_fds[i].fd);
+					printf("%d disconnected\n", client_fd);
 
-					close(network_info->client_fds[i].fd);
+					close(client_fd);
 					network_info->client_fds[i].fd = -1;
 				}
 			}
