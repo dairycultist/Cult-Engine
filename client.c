@@ -144,8 +144,6 @@ int main(int argc, char **argv) {
 
 				session_info.BOOL_active = 0;
 
-				// TODO send disconnect packet
-
 			} else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
 
 				glViewport(0, 0, event.window.data1, event.window.data2);
@@ -172,6 +170,8 @@ int main(int argc, char **argv) {
 
 	// wait on server handling thread
 	pthread_join(server_handler, NULL);
+
+	// TODO send disconnect packet
 
     // close the socket
     close(session_info.fd);

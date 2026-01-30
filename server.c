@@ -64,14 +64,14 @@ static void *handle_clients(void *network_info_void) {
 
 				if (network_info->client_fds[i].fd == -1) {
 
-					printf("%d connected.", client_fd);
+					printf("%d connected.\n", client_fd);
 					network_info->client_fds[i].fd = client_fd;
 					goto login_success;
 				}
 			}
 
 			// if there was no space, disconnect the client
-			printf("%d tried to connect, but exceeded the player cap.", client_fd);
+			printf("%d tried to connect, but exceeded the player cap.\n", client_fd);
 			close(client_fd);
 		}
 
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	printf("Server initialized.\n");
+	printf("Server initialized at %s:%s\n", argv[1], argv[2]);
 
 	// initialize client file descriptor list
 	for (int i = 0; i < MAX_PLAYER_COUNT; i++) {
