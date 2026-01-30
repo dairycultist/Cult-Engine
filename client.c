@@ -48,89 +48,8 @@ void *handle_server(void *session_info_void) {
 	return NULL;
 }
 
-void *server_independent(void *session_info_void) {
+void on_tick(SessionInfo *session_info) {
 
-	SessionInfo *session_info = (SessionInfo *) session_info_void;
-
-	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-		fprintf(stderr, "Could not initialize SDL (%s)\n", SDL_GetError());
-		exit(1);
-	}
-
-	// init OpenGL
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-	// create the window
-	SDL_Window *window = SDL_CreateWindow("Client", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 400, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-
-	if (!window) {
-		fprintf(stderr, "Could not create window (%s)\n", SDL_GetError());
-		exit(2);
-    }
-
-	SDL_GLContext context = SDL_GL_CreateContext(window);
-
-	if (!context) {
-		fprintf(stderr, "Could not create context (%s)\n", SDL_GetError());
-		exit(3);
-    }
-
-	glewExperimental = GL_TRUE;
-	glewInit();
-
-	// enable depth buffer
-	glEnable(GL_DEPTH_TEST);
-
-	// enable backface culling
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CCW);
-
-	// initialize rendering
-	// initialize_shaders();
-	// initialize_perspective(2.0);
-
-	// process events until window is closed
-	SDL_Event event;
-
-	while (session_info->BOOL_active) {
-
-		// events (key presses, mouse movements, etc)
-		while (SDL_PollEvent(&event)) {
-
-			if (event.type == SDL_QUIT) {
-
-				session_info->BOOL_active = 0;
-
-				// TODO send disconnect packet
-
-			} else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
-
-				glViewport(0, 0, event.window.data1, event.window.data2);
-				// initialize_perspective(event.window.data1 / (float) event.window.data2);
-			
-			} else {
-
-				// input handling
-			}
-		}
-
-		// TODO logic
-
-		// rendering stuff
-		SDL_GL_SwapWindow(window);
-		SDL_Delay(1000 / 60);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	// free everything
-	SDL_DestroyWindow(window);
-	SDL_GL_DeleteContext(context);
-	SDL_Quit();
-
-	return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -169,7 +88,7 @@ int main(int argc, char **argv) {
 	}
 
 	// create a separate thread for handling server packets
-	// (the main thread will handle server-independent logic -- including rendering!)
+	// (the main thread will create the window and handle rendering and server-independent logic)
 	pthread_t server_handler;
 
 	if (pthread_create(&server_handler, NULL, handle_server, &session_info)) {
@@ -178,7 +97,80 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	server_independent(&session_info);
+	// init SDL for window creation and rendering with OpenGL
+	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+		fprintf(stderr, "Could not initialize SDL (%s)\n", SDL_GetError());
+		exit(1);
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+	SDL_Window *window = SDL_CreateWindow("Client", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 400, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+
+	if (!window) {
+		fprintf(stderr, "Could not create window (%s)\n", SDL_GetError());
+		exit(2);
+    }
+
+	SDL_GLContext context = SDL_GL_CreateContext(window);
+
+	if (!context) {
+		fprintf(stderr, "Could not create context (%s)\n", SDL_GetError());
+		exit(3);
+    }
+
+	glewExperimental = GL_TRUE;
+	glewInit();
+
+	glEnable(GL_DEPTH_TEST); // depth buffer
+	glEnable(GL_CULL_FACE);  // backface culling
+	glFrontFace(GL_CCW);
+
+	// initialize_shaders();
+	// initialize_perspective(2.0);
+
+	// process events until session ends
+	SDL_Event event;
+
+	while (session_info.BOOL_active) {
+
+		// events (key presses, mouse movements, etc)
+		while (SDL_PollEvent(&event)) {
+
+			if (event.type == SDL_QUIT) {
+
+				session_info.BOOL_active = 0;
+
+				// TODO send disconnect packet
+
+			} else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+
+				glViewport(0, 0, event.window.data1, event.window.data2);
+				// initialize_perspective(event.window.data1 / (float) event.window.data2);
+			
+			} else {
+
+				// TODO input handling
+			}
+		}
+
+		on_tick(&session_info);
+
+		// rendering stuff
+		SDL_GL_SwapWindow(window);
+		SDL_Delay(1000 / 60);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	// free everything
+	SDL_DestroyWindow(window);
+	SDL_GL_DeleteContext(context);
+	SDL_Quit();
+
+	// wait on server handling thread
 	pthread_join(server_handler, NULL);
 
     // close the socket
