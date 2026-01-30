@@ -20,7 +20,7 @@ server: server.out
 	@./server.out 127.0.0.1 25565
 
 client.out: client.c packet.c
-	@gcc client.c -o client.out $(GCCFLAGS) $(shell pkg-config --cflags --libs sdl2 SDL2_image)
+	@gcc client.c client_logic.c -o client.out $(GCCFLAGS) $(shell pkg-config --cflags --libs sdl2 SDL2_image)
 
 server.out: server.c packet.c
 	@gcc server.c -o server.out
