@@ -24,7 +24,7 @@ typedef struct {
 
 } SessionInfo;
 
-void *handle_server(void *session_info_void) {
+static void *handle_server(void *session_info_void) {
 
 	SessionInfo *session_info = (SessionInfo *) session_info_void;
 
@@ -48,7 +48,7 @@ void *handle_server(void *session_info_void) {
 	return NULL;
 }
 
-void on_tick(SessionInfo *session_info) {
+static void on_tick(SessionInfo *session_info) {
 
 }
 

@@ -39,7 +39,7 @@ static void on_client_packet(NetworkInfo *network_info, Packet *packet, int clie
 }
 
 static void on_tick(NetworkInfo *network_info) {
-	// TODO client_fds should be accessible here
+	
 }
 
 static void *handle_clients(void *network_info_void) {
