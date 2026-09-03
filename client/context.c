@@ -15,12 +15,8 @@ static int running = 1;
 
 static int init(lua_State *state) {
 
-	// double d = luaL_checknumber(state, 1); // throws a Lua error for us if not a number
-
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-		fprintf(stderr, "Could not initialize SDL: %s\n", SDL_GetError());
-		exit(1);
-	}
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+		return luaL_error (state, "Could not initialize SDL: %s\n", SDL_GetError());
 
 	// init OpenGL
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -28,12 +24,10 @@ static int init(lua_State *state) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-	window = SDL_CreateWindow("Cult Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 300, 200, SDL_WINDOW_OPENGL);
+	window = SDL_CreateWindow("Cult Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, luaL_checknumber(state, 1), luaL_checknumber(state, 2), SDL_WINDOW_OPENGL);
 
-	if (!window) {
-		fprintf(stderr, "Could not create window: %s\n", SDL_GetError());
-		exit(1);
-    }
+	if (!window)
+		return luaL_error (state, "Could not create window: %s\n", SDL_GetError());
 
 	SDL_GLContext context = SDL_GL_CreateContext(window);
 
