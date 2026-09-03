@@ -1,20 +1,21 @@
 # Cult-Engine
-A work-in-progress multiplayer sandbox game with server-side modding support.
+A work-in-progress multiplayer sandbox game with server-side modding support in Lua.
+
+All higher-order logic will be written in Lua. [Lua calls C](https://www.lua.org/pil/26.html) to perform lower-order operations like rendering, networking, and collision.
 
 ## Goals
-- [x] Multiplayer (server-client sockets, packets)
+- [ ] Multiplayer (two different codebases, one for the server and one for the client)
 - [ ] 3D rendering from assets sent by the server
-- [ ] Player control which is mirrored to all other clients via the server
-- [ ] Publish a playtest on itch.io to get feedback and motivation to continue working on it
-- [ ] Custom maps, entities, items, all of which are scriptable
+- [ ] Map system
+- [ ] Item system
 
 ## Notes
-fat wife and booby wife mod
+Publish a playtest on itch.io to get feedback and motivation to continue working on it
 
-like roblok or gmod
+like roblox or gmod
 
-I wish I was less worrisome and perfectionistic
+be not worrisome and perfectionistic
 
-this game would have everything I like: C, 3D modeling, hot women, friends
+I like C and I like playing with my friends and I like modding
 
 modding is solely server-side, but the server has a lot of control over the client, like hytale
