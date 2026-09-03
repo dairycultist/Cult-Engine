@@ -42,7 +42,7 @@ static int init(lua_State *state) {
 	glClearColor(1.0f, 0.188f, 0.647f, 1.0f); // since the sky is rendered as a mesh, set the clear color to hot pink so it's obvious
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	return 0;
 }
@@ -58,7 +58,22 @@ static int populate_input(lua_State *state) {
         if (event.type == SDL_QUIT) {
 
             quit = 1;
-        }
+
+        } else if (event.type == SDL_KEYDOWN && event.key.repeat == 0 && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+
+			int prev_was_relative = SDL_GetRelativeMouseMode();
+
+			SDL_SetRelativeMouseMode(!prev_was_relative);
+
+			if (prev_was_relative) {
+
+				int w, h;
+
+				SDL_GetWindowSize(window, &w, &h);
+
+				SDL_WarpMouseInWindow(window, w / 2, h / 2);
+			}
+		}
     }
 
 	lua_pushboolean(state, quit);
