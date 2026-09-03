@@ -9,6 +9,19 @@ All higher-order logic will be written in Lua. [Lua calls C](https://www.lua.org
 - [ ] Map system
 - [ ] Item system
 
+## Dependencies
+
+Lua 5.0.3
+
+```
+curl -L -R -O https://www.lua.org/ftp/lua-5.0.3.tar.gz
+tar zxf lua-5.0.3.tar.gz
+cd lua-5.0.3
+make all test
+printf "\nalias lua='%s'\n" $(realpath bin/lua) >> ~/.bashrc
+printf "\nalias luac='%s'\n" $(realpath bin/luac) >> ~/.bashrc
+```
+
 ## Notes
 Publish a playtest on itch.io to get feedback and motivation to continue working on it
 
