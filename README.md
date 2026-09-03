@@ -11,13 +11,34 @@ All higher-order logic will be written in Lua. [Lua calls C](https://www.lua.org
 
 ## Dependencies
 
-Lua 5.0.3
+### Lua 5.0.3
+
+Download and unzip the Lua 5.0.3 source:
 
 ```
 curl -L -R -O https://www.lua.org/ftp/lua-5.0.3.tar.gz
 tar zxf lua-5.0.3.tar.gz
+```
+
+Open the created folder `lua-5.0.3` in a text editor and uncomment the following lines (remove the leading `#`):
+
+```
+#LOADLIB= -DUSE_DLOPEN=1
+#DLLIB= -ldl
+
+#MYLDFLAGS= -Wl,-E
+```
+
+Build Lua:
+
+```
 cd lua-5.0.3
 make all test
+```
+
+Finally, add Lua to your CLI commands.
+
+```
 printf "\nalias lua='%s'\n" $(realpath bin/lua) >> ~/.bashrc
 printf "\nalias luac='%s'\n" $(realpath bin/luac) >> ~/.bashrc
 ```
