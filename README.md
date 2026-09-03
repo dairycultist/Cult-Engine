@@ -13,6 +13,23 @@ Lua docs https://www.lua.org/pil/24.html
 
 ## Dependencies
 
+This software has only been tested on (slash written for) Linux Mint so I'm only putting Debian installation instructions here.
+
+I'll add cross-platform compatibility/instructions later.
+
+### SDL2
+
+```
+sudo apt install libsdl2-dev
+sudo apt install libsdl2-image-dev
+```
+
+### GLEW
+
+```
+sudo apt install libglew-dev
+```
+
 ### Lua 5.0.3
 
 Download and unzip the Lua 5.0.3 source:

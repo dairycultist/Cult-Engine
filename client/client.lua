@@ -1,9 +1,11 @@
 print("starting client")
 
-local f = assert(loadlib("client/context.so", "luaopen_contextlib"))
-f()  -- actually open the library
+-- open C libraries
+assert(loadlib("client/contextlib.so", "luaopen_contextlib"))()
 
-contextlib.init(640, 320)
+contextlib.init("Cult Engine")
+
+-- networklib.send("set_position", ...)
 
 while true do
     contextlib.present()
