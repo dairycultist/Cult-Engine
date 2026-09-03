@@ -57,13 +57,23 @@ static int populate_input(lua_State *state) {
 
 	int quit = 0;
 
+	int mouse_dx = 0;
+	int mouse_dy = 0;
+
     while (SDL_PollEvent(&event)) {
 
         if (event.type == SDL_QUIT) {
 
             quit = 1;
 
+		} else if (event.type == SDL_MOUSEMOTION) {
+
+			mouse_dx = (int) event.motion.xrel;
+			mouse_dy = (int) event.motion.yrel;
+
         } else if (event.type == SDL_KEYDOWN && event.key.repeat == 0 && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+
+			// https://wiki.libsdl.org/SDL2/SDL_Scancode
 
 			int prev_was_relative = SDL_GetRelativeMouseMode();
 			SDL_SetRelativeMouseMode(!prev_was_relative);
@@ -77,9 +87,11 @@ static int populate_input(lua_State *state) {
 		}
     }
 
+	lua_pushnumber(state, mouse_dx);
+	lua_pushnumber(state, mouse_dy);
 	lua_pushboolean(state, quit);
 
-	return 1;
+	return 3;
 }
 
 static int present(lua_State *state) {

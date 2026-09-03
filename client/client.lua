@@ -10,14 +10,20 @@ contextlib.init("Cult Engine")
 local texture = contextlib.create_texture("./test.png")
 local mesh = contextlib.create_mesh("./test.obj")
 
-local r = 0.0
+local camera_yaw, camera_pitch = 0, 0
 
 while true do
-    r = r + 0.01
-    contextlib.set_camera(0, 0, 0, 0, r)
+
+    local dx, dy, exit = contextlib.populate_input()
+
+    camera_yaw   = camera_yaw + dx * 0.01
+    camera_pitch = math.min(math.max(camera_pitch + dy * 0.01, -1.57), 1.57)
+
+    contextlib.set_camera(0, 0, 0, camera_pitch, camera_yaw)
     contextlib.draw_mesh(mesh, texture, 0, 0, -5, 0, 0)
     contextlib.present()
-    if contextlib.populate_input() then
+
+    if exit then
         break
     end
 end
