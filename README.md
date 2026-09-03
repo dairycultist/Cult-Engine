@@ -1,15 +1,10 @@
 # Cult-Engine
+
 A work-in-progress multiplayer sandbox game with server-side modding support in Lua.
 
-All high-level logic is written in Lua. Lua calls C code to perform low-level operations like rendering, networking, and collision.
+All high-level logic is written in Lua. Lua calls C code to perform low-level operations like rendering, networking, and physics.
 
 Lua docs https://www.lua.org/pil/24.html
-
-## Goals
-- [ ] Multiplayer (two different codebases, one for the server and one for the client)
-- [ ] 3D rendering from assets sent by the server
-- [ ] Map system
-- [ ] Item system
 
 ## Dependencies
 
@@ -63,6 +58,13 @@ printf "\nalias luac='%s'\n" $(realpath bin/luac) >> ~/.bashrc
 ```
 
 ## Notes
+
+Literally everything content-wise is server-side plugins -- maps, items, physics objects, custom scripts
+
+Multiplayer (two different codebases, one for the server and one for the client)
+
+3D rendering from assets __sent by the server__
+
 Publish a playtest on itch.io to get feedback and motivation to continue working on it
 
 like roblox or gmod

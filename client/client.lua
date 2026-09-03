@@ -14,7 +14,8 @@ local r = 0.0
 
 while true do
     r = r + 0.01
-    contextlib.draw_mesh(mesh, texture, 0, 0, -5, 0, r)
+    contextlib.set_camera(0, 0, 0, 0, r)
+    contextlib.draw_mesh(mesh, texture, 0, 0, -5, 0, 0)
     contextlib.present()
     if contextlib.populate_input() then
         break

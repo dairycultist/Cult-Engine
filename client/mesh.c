@@ -77,12 +77,9 @@ static void append_ezarray(EZArray *array, void *data, int data_length) {
 	array->bytecount += data_length;
 }
 
-// array of meshes and textures Lua can register to
-// TODO make size dynamic
+// array of textures Lua can register to
 static TextureGL textures[100];
 static int texture_count = 0;
-static MeshGL meshes[100];
-static int mesh_count = 0;
 
 static int create_texture(lua_State *state) {
 
@@ -139,6 +136,10 @@ static int create_texture(lua_State *state) {
 
 	return 1;
 }
+
+// array of meshes Lua can register to
+static MeshGL meshes[100];
+static int mesh_count = 0;
 
 static int create_mesh_helper(const unsigned char *mesh_data, const int mesh_bytecount, const int mesh_vertcount) {
 
@@ -359,7 +360,17 @@ static void generate_rotation_matrices(GLfloat pitch_matrix[4][4], float pitch, 
 	yaw_matrix[3][3] = 1;
 }
 
-// static int set_camera(lua_State *state) {}
+static float camera_x, camera_y, camera_z;
+static float camera_pitch, camera_yaw;
+
+static int set_camera(lua_State *state) {
+
+	camera_x     = luaL_checknumber(state, 1);
+	camera_y     = luaL_checknumber(state, 2);
+	camera_z     = luaL_checknumber(state, 3);
+	camera_pitch = luaL_checknumber(state, 4);
+	camera_yaw   = luaL_checknumber(state, 5);
+}
 
 // parameters: mesh, texture, model x y z pitch yaw
 static int draw_mesh(lua_State *state) {
@@ -372,12 +383,6 @@ static int draw_mesh(lua_State *state) {
 	float model_z     = luaL_checknumber(state, 5);
 	float model_pitch = luaL_checknumber(state, 6);
 	float model_yaw   = luaL_checknumber(state, 7);
-
-	float camera_x     = 0.0;
-	float camera_y     = 0.0;
-	float camera_z     = 0.0;
-	float camera_pitch = 0.0;
-	float camera_yaw   = 0.0;
 
 	// shared buffers
 	GLfloat pitch_matrix[4][4];
@@ -407,7 +412,7 @@ static int draw_mesh(lua_State *state) {
 	// must apply translations before rotations this time, unlike model matrix!
 	generate_rotation_matrices(
 		pitch_matrix, -camera_pitch,
-		yaw_matrix, -camera_yaw
+		yaw_matrix,   -camera_yaw
 	);
 
 	GLfloat view_matrix[4][4] = {

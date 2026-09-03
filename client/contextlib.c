@@ -104,7 +104,7 @@ static const struct luaL_reg contextlib[] = {
 	// mesh
 	{"create_texture", create_texture},
 	{"create_mesh", create_mesh},
-	// {"set_camera", set_camera},
+	{"set_camera", set_camera},
 	{"draw_mesh", draw_mesh},
 
     {NULL, NULL}
