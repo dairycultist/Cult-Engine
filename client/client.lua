@@ -7,9 +7,15 @@ contextlib.init("Cult Engine")
 
 -- networklib.send("set_position", ...)
 
-while true do
-    contextlib.present()
+local texture = contextlib.create_texture("./test.png")
+local mesh = contextlib.create_mesh("./test.obj")
 
+local r = 0.0
+
+while true do
+    r = r + 0.01
+    contextlib.draw_mesh(mesh, texture, 0, 0, -5, 0, r)
+    contextlib.present()
     if contextlib.populate_input() then
         break
     end

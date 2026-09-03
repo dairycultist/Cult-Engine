@@ -13,6 +13,8 @@
 static SDL_Window *window;
 static int running = 1;
 
+#include "mesh.c"
+
 static int init(lua_State *state) {
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -44,6 +46,8 @@ static int init(lua_State *state) {
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
+	create_shader_program(&shader3D_program, vertex3D, fragment3D);
+
 	return 0;
 }
 
@@ -62,15 +66,12 @@ static int populate_input(lua_State *state) {
         } else if (event.type == SDL_KEYDOWN && event.key.repeat == 0 && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
 
 			int prev_was_relative = SDL_GetRelativeMouseMode();
-
 			SDL_SetRelativeMouseMode(!prev_was_relative);
 
 			if (prev_was_relative) {
 
 				int w, h;
-
 				SDL_GetWindowSize(window, &w, &h);
-
 				SDL_WarpMouseInWindow(window, w / 2, h / 2);
 			}
 		}
@@ -94,14 +95,22 @@ static int present(lua_State *state) {
  * register C functions as a Lua library
  */
 static const struct luaL_reg contextlib[] = {
+
+	// context
     {"init", init},
 	{"populate_input", populate_input},
 	{"present", present},
+
+	// mesh
+	{"create_texture", create_texture},
+	{"create_mesh", create_mesh},
+	// {"set_camera", set_camera},
+	{"draw_mesh", draw_mesh},
+
     {NULL, NULL}
 };
 
 int luaopen_contextlib(lua_State *L) {
-
     luaL_openlib(L, "contextlib", contextlib, 0);
     return 1;
 }
