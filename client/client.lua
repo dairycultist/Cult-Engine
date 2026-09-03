@@ -1,6 +1,14 @@
 print("starting client")
 
-local f = assert(loadlib("client/render.so", "luaopen_mylib"))
+local f = assert(loadlib("client/context.so", "luaopen_contextlib"))
 f()  -- actually open the library
 
-print(mylib.myfunc(20))
+contextlib.init()
+
+while true do
+    contextlib.present()
+
+    if contextlib.populate_input() then
+        break
+    end
+end

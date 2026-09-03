@@ -1,7 +1,9 @@
 # Cult-Engine
 A work-in-progress multiplayer sandbox game with server-side modding support in Lua.
 
-All higher-order logic will be written in Lua. [Lua calls C](https://www.lua.org/pil/26.html) to perform lower-order operations like rendering, networking, and collision.
+All high-level logic is written in Lua. Lua calls C code to perform low-level operations like rendering, networking, and collision.
+
+Lua docs https://www.lua.org/pil/24.html
 
 ## Goals
 - [ ] Multiplayer (two different codebases, one for the server and one for the client)
